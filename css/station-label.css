@@ -1,0 +1,13 @@
+.station-label {
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 13px;
+    white-space: nowrap;
+    font-weight: bold;
+    text-align: center;
+    text-shadow:
+        -1px -1px 0 #fff, /* Góra-lewo */
+        1px -1px 0 #fff,  /* Góra-prawo */
+        -1px 1px 0 #fff,  /* Dół-lewo */
+        1px 1px 0 #fff;   /* Dół-prawo */
+}

@@ -14,6 +14,8 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-control-layers-tree/dist/L.Control.Layers.Tree.css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.polylinedecorator@1.6.0/dist/leaflet.polylinedecorator.min.css">
         <link rel="stylesheet" href="css/legend.css" />
+        <link rel="stylesheet" href="css/station-label.css" />
+        
         <style>
         html, body, #map {
             width: 100%;
@@ -59,8 +61,12 @@
         <script src="data/Drogirowerowe_4.js"></script>
         <script src="data/Trasyautobusowe_5.js"></script>
         <script src="data/Przystankiautobusowe_6.js"></script>
+        <script src="data/Dworceautobusowe_1.js"></script>
+        <script src="data/Parkingi_0.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/leaflet-control-layers-tree/dist/L.Control.Layers.Tree.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/leaflet.polylinedecorator@1.6.0/dist/leaflet.polylinedecorator.min.js"></script>
+        <script src="data/Stacjekolejowe_0.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-maskcanvas@1.0.0/src/L.GridLayer.MaskCanvas.min.js"></script>
         <script>
             
         var map = L.map('map', {
@@ -69,7 +75,7 @@
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
+        
         function removeEmptyRowsFromPopupContent(content, feature) {
          var tempDiv = document.createElement('div');
          tempDiv.innerHTML = content;
@@ -83,13 +89,13 @@
          }
          return tempDiv.innerHTML;
         }
-        // add class to format popup if it contains media
+        
 		function addClassToPopupIfMedia(content, popup) {
 			var tempDiv = document.createElement('div');
 			tempDiv.innerHTML = content;
 			if (tempDiv.querySelector('td img')) {
 				popup._contentNode.classList.add('media');
-					// Delay to force the redraw
+					
 					setTimeout(function() {
 						popup.update();
 					}, 10);
@@ -138,6 +144,8 @@
         });
         layer_Mapka_0;
         map.addLayer(layer_Mapka_0);
+            
+
         function pop_Liniekolejowe_1(feature, layer) {
             var popupContent = '<table>\
                     <tr>\
@@ -197,53 +205,7 @@
             
             
             
-            
-        function pop_Stacjekolejowe_3(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <td colspan="2">' + (feature.properties['Nazwa'] !== null ? autolinker.link(feature.properties['Nazwa'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_Stacjekolejowe() {
-            return {
-                 pane: 'pane_Stacjekolejowe_3',
-                 rotationAngle: 0.0,
-                 rotationOrigin: 'center center',
-                 icon: L.icon({  
-                     iconUrl: 'markers/rail.svg', 
-                     iconSize: [20, 20], 
-
-                 }),
-                 interactive: true,
-             };
-        }
-
-        map.createPane('pane_Stacjekolejowe_3');
-        map.getPane('pane_Stacjekolejowe_3').style.zIndex = 403;
-        map.getPane('pane_Stacjekolejowe_3').style['mix-blend-mode'] = 'normal';
-            
-        var layer_Stacjekolejowe_3 = L.geoJson(json_Stacjekolejowe_3, {
-            attribution: '',
-            interactive: true,
-            dataVar: 'json_Stacjekolejowe_3',
-            layerName: 'layer_Stacjekolejowe_3',
-            pane: 'pane_Stacjekolejowe_3',
-            onEachFeature: pop_Stacjekolejowe_3,
-            pointToLayer: function (feature, latlng) { 
-                return L.marker(latlng, style_Stacjekolejowe()); 
-            }
-        });  
-            
-        bounds_group.addLayer(layer_Stacjekolejowe_3);
-        map.addLayer(layer_Stacjekolejowe_3);
-            
+        
     
         function pop_Drogirowerowe_4(feature, layer) {
             var popupContent = '<table>\
@@ -296,8 +258,39 @@
         });
         bounds_group.addLayer(layer_Drogirowerowe_4);
         map.addLayer(layer_Drogirowerowe_4);
+        
+       
             
-            
+        var layer_Stacjekolejowe_0 = L.geoJson(json_Stacjekolejowe_0, {
+            pointToLayer: function (feature, latlng) {
+                var marker = L.marker(latlng, {
+                    icon: L.icon({
+                        iconUrl: 'markers/rail.svg',
+                        iconSize: [20, 20]
+                    })
+                });
+
+                var label = L.marker(latlng, {
+                    icon: L.divIcon({
+                        className: 'station-label', 
+                        html: feature.properties.Nazwa, 
+                        iconSize: [100, 20], 
+                        iconAnchor: [55, -10] 
+                    })
+                });
+
+                marker.bindPopup('<b>Nazwa stacji:</b> ' + feature.properties.Nazwa + '<br>' +
+                                 '<b><br>Zdjęcie:</br></b>' + feature.properties.Zdjecie);
+
+                return L.layerGroup([marker, label]);
+
+            },
+            onEachFeature: function (feature, layer) {
+            }
+        }).addTo(map);
+
+        bounds_group.addLayer(layer_Stacjekolejowe_0);
+        map.addLayer(layer_Stacjekolejowe_0);
             
             
         function pop_Trasyautobusowe_5(feature, layer) {
@@ -481,9 +474,9 @@
                 pane: 'pane_Przystankiautobusowe_6',
                  rotationAngle: 0.0,
                  rotationOrigin: 'center center',
-                 icon: L.icon({  //Use a direct path if your markers are not loading
-                     iconUrl: 'markers/bus.svg', // Replace with your bus stop icon
-                     iconSize: [15, 15], // Adjust icon size as needed
+                 icon: L.icon({  
+                     iconUrl: 'markers/bus.svg', 
+                     iconSize: [15, 15], 
                     
                  }),
                  interactive: true,
@@ -502,8 +495,8 @@
             layerName: 'layer_Przystankiautobusowe_6',
             pane: 'pane_Przystankiautobusowe_6',
             onEachFeature: pop_Przystankiautobusowe_6,
-            pointToLayer: function (feature, latlng) { // Tylko jedna funkcja!
-                return L.marker(latlng, style_Przystankiautobusowe()); // Tworzymy marker i stosujemy styl
+            pointToLayer: function (feature, latlng) { 
+                return L.marker(latlng, style_Przystankiautobusowe()); 
             }
         });
 
@@ -513,7 +506,6 @@
                 map.addLayer(layer_Przystankiautobusowe_6);
             
         
-        // Definiujemy style dla kolorowych kwadratów w legendzie
         var availabilityStyles = {
             '1': { label: 'Bardzo dobra', color: '#00441b' },
             '2': { label: 'Dobra', color: '#2a924b' },
@@ -522,7 +514,6 @@
             '5': { label: 'Bardzo słaba', color: '#f7fcf5' }
         };
 
-        // Funkcja do generowania HTML dla dostępności (jak dla tras autobusowych)
         function createAvailabilityLegendHTML() {
             var html = 'Dostępność<br /><table>';
             for (var key in availabilityStyles) {
@@ -536,13 +527,14 @@
         var overlaysTree = {
             label: 'Warstwy',
             children: [
-                { label: 'Przystanki autobusowe', layer: layer_Przystankiautobusowe_6 }, // Tylko tekst
-                { label: 'Trasy autobusowe', layer: layer_Trasyautobusowe_5 },          // Tylko tekst
-                { label: 'Drogi rowerowe', layer: layer_Drogirowerowe_4 },             // Tylko tekst
-                { label: 'Stacje kolejowe', layer: layer_Stacjekolejowe_3 },           // Tylko tekst
-                { label: 'Dostępność', layer: layer_Dostpno_2 },                        // Tylko tekst
-                { label: 'Linie kolejowe', layer: layer_Liniekolejowe_1 },            // Tylko tekst
+                { label: 'Przystanki autobusowe', layer: layer_Przystankiautobusowe_6 }, 
+                { label: 'Trasy autobusowe', layer: layer_Trasyautobusowe_5 },          
+                { label: 'Stacje kolejowe', layer: layer_Stacjekolejowe_0 },
+                { label: 'Linie kolejowe', layer: layer_Liniekolejowe_1 }, 
+                { label: 'Drogi rowerowe', layer: layer_Drogirowerowe_4 }, 
+                { label: 'Dostępność', layer: layer_Dostpno_2 },                        
                 { label: "Mapa bazowa", layer: layer_Mapka_0, radioGroup: 'bm' },
+                
             ]
         };
             
@@ -551,12 +543,12 @@
             children: [
                 { label: '<img src="legend/Przystankiautobusowe_6.png" /> Przystanki autobusowe', layer: layer_Przystankiautobusowe_6 },
                 { label: 'Trasy autobusowe<br /><table><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_10.png" /></td><td>1</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_21.png" /></td><td>2</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_32.png" /></td><td>3</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_43.png" /></td><td>4</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_54.png" /></td><td>5</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_85.png" /></td><td>8</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_156.png" /></td><td>15</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_237.png" /></td><td>23</td></tr><tr><td style="text-align: center;"><img src="legend/Trasyautobusowe_5_248.png" /></td><td>24</td></tr></table>', layer: layer_Trasyautobusowe_5 },
-                { label: '<img src="legend/Drogirowerowe_4.png" /> Drogi rowerowe', layer: layer_Drogirowerowe_4 },
-                { label: '<img src="legend/Stacjekolejowe_3.png" /> Stacje kolejowe', layer: layer_Stacjekolejowe_3 },
-                // Dostępność - dynamicznie generowany HTML
-                { label: createAvailabilityLegendHTML(), layer: layer_Dostpno_2 }, 
+                { label: '<img src="legend/Stacjekolejowe_3.png" /> Stacje kolejowe', layer: layer_Stacjekolejowe_0 },
                 { label: '<div style="display: inline-block; background-color: rgb(186, 27, 232); width: 20px; height: 3px; vertical-align: middle; margin-right: 5px;"></div>Linie kolejowe', layer: layer_Liniekolejowe_1 },
+                { label: '<img src="legend/Drogirowerowe_4.png" /> Drogi rowerowe', layer: layer_Drogirowerowe_4 },
+                { label: createAvailabilityLegendHTML(), layer: layer_Dostpno_2 }, 
                 { label: "Mapa bazowa", layer: layer_Mapka_0, radioGroup: 'bm' },
+                
             ]
         };
 
@@ -568,35 +560,7 @@
 
             
             
-        setBounds();
-        var i = 0;
-        layer_Stacjekolejowe_3.eachLayer(function(layer) {
-            var context = {
-                feature: layer.feature,
-                variables: {}
-            };
-            layer.bindTooltip((layer.feature.properties['Nazwa'] !== null?String('<div style="color: #323232; font-size: 10pt; font-weight: bold; font-family: \'Galano Grotesque Alt\', sans-serif;">' + layer.feature.properties['Nazwa']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Stacjekolejowe_3'});
-            labels.push(layer);
-            totalMarkers += 1;
-              layer.added = true;
-              addLabel(layer, i);
-              i++;
-        });
-        L.ImageOverlay.include({
-            getBounds: function () {
-                return this._bounds;
-            }
-        });
-        resetLabels([layer_Stacjekolejowe_3,layer_Trasyautobusowe_5,layer_Przystankiautobusowe_6]);
-        map.on("zoomend", function(){
-            resetLabels([layer_Stacjekolejowe_3,layer_Trasyautobusowe_5,layer_Przystankiautobusowe_6]);
-        });
-        map.on("layeradd", function(){
-            resetLabels([layer_Stacjekolejowe_3,layer_Trasyautobusowe_5,layer_Przystankiautobusowe_6]);
-        });
-        map.on("layerremove", function(){
-            resetLabels([layer_Stacjekolejowe_3,layer_Trasyautobusowe_5,layer_Przystankiautobusowe_6]);
-        });
+       
         
         L.control.scale({
             position: 'bottomleft',
@@ -608,18 +572,17 @@
         var coordinatesContainer = L.DomUtil.create('div', 'coordinates-container');
         document.body.appendChild(coordinatesContainer);
 
-        // Tworzymy element HTML do wyświetlania współrzędnych
+        
         var coordinatesDiv = L.DomUtil.create('div', 'coordinates-display');
-        coordinatesContainer.appendChild(coordinatesDiv); // Dodajemy do kontenera
+        coordinatesContainer.appendChild(coordinatesDiv); 
 
-        // Obsługa zdarzenia mousemove
+        
         map.on('mousemove', function(e) {
-            var lat = e.latlng.lat.toFixed(6); // Zaokrąglamy do 6 miejsc po przecinku
+            var lat = e.latlng.lat.toFixed(6); 
             var lng = e.latlng.lng.toFixed(6);
             coordinatesDiv.innerHTML = 'Szerokość: ' + lat + ', Długość: ' + lng;
         });
-
-        // Dodajemy styl CSS (opcjonalnie)
+            
         var style = document.createElement('style');
         style.innerHTML = `
         .coordinates-container {
@@ -644,20 +607,20 @@
         document.head.appendChild(style);
             
             
-            var legend = L.control({ position: 'bottomleft' });
+        var legend = L.control({ position: 'bottomleft' });
 
-            legend.onAdd = function (map) {
-                var div = L.DomUtil.create('div', 'info legend');
-                div.style.padding = '10px';
-                div.style.backgroundColor = 'white';
-                div.style.borderRadius = '5px';
-                div.style.border = '1px solid #ccc';
-                return div; // Zwracamy pusty div na początku
-            };
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.style.padding = '10px';
+            div.style.backgroundColor = 'white';
+            div.style.borderRadius = '5px';
+            div.style.border = '1px solid #ccc';
+            return div; 
+        };
 
-            legend.addTo(map);
+        legend.addTo(map);
 
-            // Funkcja aktualizująca legendę
+            
         function updateLegend() {
             var legendDiv = legend.getContainer();
             if (legendDiv) {
@@ -672,11 +635,9 @@
             }    
         }
 
-            // Dodajemy nasłuchiwanie na zdarzenie 'overlayadd' i 'overlayremove'
+            
         map.on('overlayadd', updateLegend);
         map.on('overlayremove', updateLegend);
-
-            // Inicjalne wywołanie aktualizacji legendy (opcjonalne, jeśli chcesz coś wyświetlić na starcie)
         updateLegend();
             
             
